@@ -2,6 +2,8 @@ name: Build and Deploy Backend
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main] #kalo mau otomatis buka aja
 
 # on:
 #   push:
@@ -37,7 +39,7 @@ jobs:
           file: ./Dockerfile
           push: true
           tags: |
-            rafli27/springboot-backend:2
+            rafli27/springboot-backend:latest
 
       # - name: Push to Docker Hub
       #   run: |
