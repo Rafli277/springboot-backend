@@ -1,12 +1,15 @@
 name: Build and Deploy Backend
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - 'src/**'
-      - 'pom.xml'
-      - 'Dockerfile'
+  workflow_dispatch:
+
+# on:
+#   push:
+#     branches: [main]
+#     paths:
+#       - 'src/**'
+#       - 'pom.xml'
+#       - 'Dockerfile'
 
 jobs:
   build-and-deploy:
@@ -19,19 +22,36 @@ jobs:
         run: |
           docker build -t your-username/springboot-backend:latest .
 
-      - name: Push to Docker Hub
-        run: |
-          echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
-          docker push your-username/springboot-backend:latest
-
-      - name: Deploy to VM
-        uses: appleboy/ssh-action@v0.1.6
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
         with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USERNAME }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          script: |
-            cd /opt/app-infra
-            docker pull your-username/springboot-backend:latest
-            docker-compose up -d --no-deps backend
-            echo "✅ Backend deployed successfully!"
+          username: ${{ vars.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and Push Docker image (backend)
+        uses: docker/build-push-action@v6
+        with:
+          file: ./Dockerfile
+          push: true
+          tags: |
+            rafli27/springboot-backend:latest
+
+      # - name: Push to Docker Hub
+      #   run: |
+      #     echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      #     docker push your-username/springboot-backend:latest
+
+      # - name: Deploy to VM
+      #   uses: appleboy/ssh-action@v0.1.6
+      #   with:
+      #     host: ${{ secrets.VM_HOST }}
+      #     username: ${{ secrets.VM_USERNAME }}
+      #     key: ${{ secrets.VM_SSH_KEY }}
+      #     script: |
+      #       cd /opt/app-infra
+      #       docker pull your-username/springboot-backend:latest
+      #       docker-compose up -d --no-deps backend
+      #       echo "✅ Backend deployed successfully!"
