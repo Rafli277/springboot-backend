@@ -1,4 +1,4 @@
-name: Build and Deploy Backend
+name: Build and Deploy Backend(JDK only)
 
 on:
   workflow_dispatch:
